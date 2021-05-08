@@ -1,21 +1,20 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
 
-namespace AppPrototype
+namespace OnlineShop
 {
 	class Program
 	{
 		static void Main(string[] args)
 		{
+			User currentUser = null;
+
+		start:
 			Console.WriteLine("Welcome!");
 			Console.WriteLine("If you're new here, please type Register");
 			Console.WriteLine("If you already have a profile, please type Log in");
 
-			User currentUser = null;
 			string command = Console.ReadLine().ToLower();
 
 			if (command == "register")
@@ -41,6 +40,13 @@ namespace AppPrototype
 				{
 					currentUser.GetAllPosts();
 				}
+
+				else if (command.Equals("log out"))
+				{
+					Console.WriteLine($"Bye, {currentUser.Username}\n");
+					currentUser = null;
+					goto start;
+				}
 			}
 		}
 
@@ -50,7 +56,7 @@ namespace AppPrototype
 		/// <returns>The info of the new user</returns>
 		static User Register()
 		{
-			username:
+		username:
 			Console.Write("Enter username: ");
 			string username = Console.ReadLine();
 
@@ -73,7 +79,7 @@ namespace AppPrototype
 				info.IsReadOnly = true;
 			}
 
-			File.Create($"Backup Info\\Posts\\{username}.txt");
+			FileStream fs = File.Create($"Backup Info\\Posts\\{username}.txt");
 			info = new FileInfo($"Backup Info\\Posts\\{username}.txt");
 
 			if (!info.IsReadOnly)
@@ -81,6 +87,7 @@ namespace AppPrototype
 				info.IsReadOnly = true;
 			}
 
+			fs.Close();
 			return new User(username, password, new List<Post>());
 		}
 
@@ -90,14 +97,14 @@ namespace AppPrototype
 		/// <returns>The user we're logging in</returns>
 		static User LogIn()
 		{
-			username:
+		username:
 			Console.Write("Enter username: ");
 			string username = Console.ReadLine();
 			string password = " ";
 
 			if (File.Exists($"Backup Info\\Users\\{username}.txt"))
 			{
-				enterPassword:
+			enterPassword:
 				Console.Write("Enter password: ");
 				password = Console.ReadLine();
 
