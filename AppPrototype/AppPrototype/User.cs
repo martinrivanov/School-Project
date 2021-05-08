@@ -1,13 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
 
-namespace AppPrototype
+namespace OnlineShop
 {
-
 	/// <summary>
 	/// the implementation of the user
 	/// </summary>
@@ -45,7 +41,7 @@ namespace AppPrototype
 		/// </summary>
 		public void CreatePost()
 		{
-			Console.Write("Enter name of the product: ");
+			Console.Write("\nEnter name of the product: ");
 			string product = Console.ReadLine();
 			Console.Write("Enter category of the product: ");
 			string category = Console.ReadLine();
@@ -73,10 +69,12 @@ namespace AppPrototype
 
 			Post post = new Post(product, category, price);
 			posts.Add(post);
+			Console.WriteLine();
 		}
 
 		public void GetAllPosts()
 		{
+			Console.WriteLine();
 			FileInfo file = new FileInfo($"Backup Info\\Posts\\{username}.txt");
 			file.IsReadOnly = false;
 
@@ -85,11 +83,18 @@ namespace AppPrototype
 				string line;
 				while ((line = reader.ReadLine()) != null)
 				{
-					Console.WriteLine(line);
+					string userPost = line.Split(" - ")[0];
+
+					if (!userPost.Equals(username))
+					{
+						Console.WriteLine(line);
+					}
 				}
 
 				file.IsReadOnly = true;
 			}
+
+			Console.WriteLine();
 		}
 	}
 }
