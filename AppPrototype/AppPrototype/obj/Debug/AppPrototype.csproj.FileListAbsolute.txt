@@ -1,7 +1,0 @@
-E:\My Documents E\PROGRAMS MARTI\AppPrototype\AppPrototype\bin\Debug\AppPrototype.exe.config
-E:\My Documents E\PROGRAMS MARTI\AppPrototype\AppPrototype\bin\Debug\AppPrototype.exe
-E:\My Documents E\PROGRAMS MARTI\AppPrototype\AppPrototype\bin\Debug\AppPrototype.pdb
-E:\My Documents E\PROGRAMS MARTI\AppPrototype\AppPrototype\obj\Debug\AppPrototype.csprojResolveAssemblyReference.cache
-E:\My Documents E\PROGRAMS MARTI\AppPrototype\AppPrototype\obj\Debug\AppPrototype.exe
-E:\My Documents E\PROGRAMS MARTI\AppPrototype\AppPrototype\obj\Debug\AppPrototype.pdb
-E:\My Documents E\PROGRAMS MARTI\AppPrototype\AppPrototype\bin\Debug\AppPrototype.XML
