@@ -102,11 +102,6 @@ namespace OnlineShop
 							Console.WriteLine($"{item.NotificationSender}: {item.NotificationContent}");
 						}
 
-						using (var context = new ShopContext())
-						{
-							
-						}
-
 						Console.WriteLine("Press key when you're ready!");
 						Console.ReadKey();
 						Console.WriteLine();
