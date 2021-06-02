@@ -1,141 +1,264 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 using System.Linq;
-using System.Text;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Generic;
+using OnlineShop.Models;
 
-namespace OnlineShop.ApplicationSetup
+namespace OnlineShop
 {
-	public class User
+	class Program
 	{
-		public int UserId { get; set; }
-		public string UserName { get; set; }
-		public string UserPassword { get; set; }
-		public DateTime LastSeen { get; set; }
-		[NotMapped]
-		public List<string> Followers { get; set; }
-
-		public void CreatePost()
+		static void Main()
 		{
-			Console.Write("Enter the name of the product: ");
-			string name = Console.ReadLine();
+		logOff:
+			Console.WriteLine("Welcome to my Online Shop!");
 
-			Console.Write("Enter the category in which the product will be added: ");
-			string category = Console.ReadLine();
+		commands:
+			Console.WriteLine("If you already have an account, type \"log in\"");
+			Console.WriteLine("If you don't have an account, type \"register\" ");
+			Console.WriteLine("If you already want to exit, type \"exit\"");
+			Console.Write("Type here: ");
+			string command = Console.ReadLine().ToLower();
 
-			Console.Write("Enter the price of the product: ");
-			double price = double.Parse(Console.ReadLine());
+			User currentUser = null;
+			bool exit = false;
 
-			Console.WriteLine("Creating the post...");
-			Post post = new Post
+			if (command == "log in")
 			{
-				PostName = name,
-				PostCategory = category,
-				PostPrice = price,
-				PostCreationDate = DateTime.Now,
-				PostCreator = UserName
-			};
-
-			using (var context= new ShopContext())
-			{
-				context.Posts.Add(post);
-				context.SaveChanges();
+				currentUser = LogIn();
 			}
 
-			Console.WriteLine("The post was created!");
+			else if (command == "register")
+			{
+				currentUser = Register();
+			}
 
-			Notify($"{this.UserName} created a post!");
+			else if (command == "exit")
+			{
+			exitAnswer:
+				Console.Write("Are you sure? [Y/N] ");
+				string answer = Console.ReadLine().ToLower();
+
+				if (answer == "y")
+				{
+					exit = true;
+					Console.WriteLine("Bye!");
+				}
+
+				else if (answer == "n")
+				{
+					Console.WriteLine();
+					goto commands;
+				}
+
+				else
+				{
+					Console.WriteLine("We couldn't understand that! Try again!");
+					Console.WriteLine();
+					goto exitAnswer;
+				}
+			}
+
+			else
+			{
+				Console.WriteLine("There's no such command");
+				Console.WriteLine("Try again!");
+				Console.WriteLine();
+				goto commands;
+			}
+
+			if (!exit)
+			{
+				ShowNotifications(currentUser);
+			}
+
+			while (!exit)
+			{
+				Console.WriteLine();
+				Console.WriteLine("Commands: ");
+				Console.WriteLine("1. Creating post");
+				Console.WriteLine("2. Viewing all posts");
+				Console.WriteLine("3. Filtering posts by category");
+				Console.WriteLine("4. Buying other's product");
+				Console.WriteLine("5. Follow user");
+				Console.WriteLine("6. Account settings");
+				Console.WriteLine("7. Log out");
+				Console.WriteLine("8. Exit");
+
+				command = Console.ReadLine();
+
+				if (command == "1")
+				{
+					currentUser.CreatePost();
+				}
+
+				else if (command == "2")
+				{
+					currentUser.ShowAllPosts();
+				}
+
+				else if (command == "3")
+				{
+					currentUser.Filter();
+				}
+
+				else if (command == "4")
+				{
+					currentUser.BuyItems();
+				}
+
+				else if (command == "5")
+				{
+					currentUser.Follow();
+				}
+
+				else if (command == "7")
+				{
+					Console.WriteLine($"Bye, {currentUser.UserName}\n");
+					goto logOff;
+				}
+
+				else if (command == "8")
+				{
+					exit = true;
+
+					Console.WriteLine("Bye!");
+				}
+			}
 		}
 
-		public void ShowAllPosts()
+		static User LogIn()
 		{
-			List<Post> allPosts = null;
-
-			using (var context = new ShopContext())
-			{
-				allPosts = context.Posts.ToList();
-			}
-
-			foreach (var post in allPosts)
-			{
-				Console.WriteLine(post.ToString());
-			}
-		}
-
-		public void Filter()
-		{
-			Console.WriteLine("Select from the following categories, that you want to be shown (you can select multiple by separating them with |)");
-			HashSet<string> categories = null;
-
-			using (var context = new ShopContext())
-			{
-				categories = context.Posts.Select(n => n.PostCategory).ToHashSet();
-			}
-
-			foreach (var item in categories)
-			{
-				Console.WriteLine($"-{item}");
-			}
-
-			categories = categories
-				.Select(n => n.ToLower())
-				.ToHashSet();
-
-			string category = Console.ReadLine();
-			List<string> selectedCategories = category.Split('|').ToList();
-
-			List<Post> posts = null;
-
-			using (var context = new ShopContext())
-			{
-				posts = context.Posts
-					.Where(n => selectedCategories.Contains(n.PostCategory))
-					.ToList();
-			}
-
-			foreach (var post in posts)
-			{
-				Console.WriteLine(post.ToString());
-			}
-		}
-
-		public void Follow()
-		{
-			enterUsername:
-			Console.Write("Enter the username of the user you want to follow: ");
+		validatingUsername:
+			Console.Write("Enter username: ");
 			string username = Console.ReadLine();
 
-			if (!ValidateUsername(username))
+			Console.WriteLine("Checking username...");
+			bool isUsernameExisting = ValidateUsername(username);
+
+			if (isUsernameExisting)
 			{
-				Console.WriteLine("This user does not exist! Try again!");
-				goto enterUsername;
+				Console.WriteLine("User with this username does not exist. Try again!");
+				Console.WriteLine();
+				goto validatingUsername;
 			}
+
+			Console.WriteLine("Username check finished!");
+
+		passwordCheck:
+			Console.Write("Enter password: ");
+			string password = Console.ReadLine();
+
+			Console.WriteLine("Checking password...");
+			bool isPasswordCorrect = ValidatePassword(username, password);
+
+			if (!isPasswordCorrect)
+			{
+				Console.WriteLine("Incorrect password! Try again!");
+				goto passwordCheck;
+			}
+
+			User user = new User
+			{
+				UserName = username,
+				UserPassword = password,
+				LastSeen = DateTime.Now
+			};
 
 			using (var context = new ShopContext())
 			{
-				Follower follower = new Follower
-				{
-					Following = this.UserName,
-					Followed = username
-				};
+				var result = context.Users
+					.SingleOrDefault(u => u.UserName == username);
 
-				context.Followers.Add(follower);
+				if (result != null)
+				{
+					result.LastSeen = DateTime.Now;
+					context.SaveChanges();
+				}
+
+				var followers = context.Followers
+					.Where(u => u.Followed == username)
+					.ToList();
+
+				user.Followers = new List<string>();
+
+				foreach (var follower in followers)
+				{
+					user.Followers.Add(follower.Following);
+				}
+			}
+
+			Console.WriteLine("Logging in was successful!");
+			Console.WriteLine($"Welcome, {username}");
+
+			return user;
+		}
+
+		static User Register()
+		{
+		creatingUsername:
+			Console.Write("Enter username: ");
+			string username = Console.ReadLine();
+
+			Console.WriteLine("Checking username...");
+			bool isUsernameExisting = !ValidateUsername(username);
+
+			if (isUsernameExisting)
+			{
+				Console.WriteLine("User with this username already exists. Try again!");
+				Console.WriteLine();
+				goto creatingUsername;
+			}
+
+			Console.WriteLine("Username check finished!");
+			Console.Write("Enter password: ");
+			string password = Console.ReadLine();
+
+			Console.WriteLine("Creating user...");
+			User user = new User
+			{
+				UserName = username,
+				UserPassword = password,
+				LastSeen = DateTime.Now
+			};
+
+			using (var context = new ShopContext())
+			{
+				context.Users.Add(user);
 				context.SaveChanges();
 			}
 
-			Console.WriteLine($"You just followed {username}! Now you can get notifications from them!");
+			Console.WriteLine("User was successfully created!");
+			Console.WriteLine($"Welcome, {username}");
+
+			return user;
 		}
 
-		private bool ValidateUsername(string username)
+		static bool ValidateUsername(string username)
 		{
 			using (var context = new ShopContext())
 			{
-				var usernames = context.Users
+				var usersWithUsername = context.Users
 					.Where(u => u.UserName == username)
 					.ToList();
 
-				if (usernames.Any())
+				if (usersWithUsername.Any())
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		static bool ValidatePassword(string username, string password)
+		{
+			using (var context = new ShopContext())
+			{
+				var usersWithUsername = context.Users
+					.Where(u => u.UserName == username)
+					.ToList();
+
+				if (usersWithUsername[0].UserPassword == password)
 				{
 					return true;
 				}
@@ -144,24 +267,53 @@ namespace OnlineShop.ApplicationSetup
 			return false;
 		}
 
-		private void Notify(string message)
+		static void ShowNotifications(User currentUser)
 		{
+			List<Notification> notificationList = null;
 			using (var context = new ShopContext())
 			{
-				foreach (var follower in Followers)
+				notificationList = context.Notifications
+					.Where(n => n.NotificationReceiver == currentUser.UserName && !n.IsNotificationRead)
+					.ToList();
+			}
+
+			if (notificationList.Any())
+			{
+				Console.WriteLine($"You have {notificationList.Count} unread notifications!");
+				Console.Write("Do you wish to open them? [Y/N] ");
+
+				string answer = Console.ReadLine().ToLower();
+
+				if (answer == "y")
 				{
-					Notification notification = new Notification
+					Console.WriteLine("Notifications: ");
+
+					foreach (var item in notificationList)
 					{
-						NotificationSender = this.UserName,
-						NotificationReceiver = follower,
-						NotificationContent = message,
-						IsNotificationRead = false
-					};
+						Console.WriteLine($"{item.NotificationSender}: {item.NotificationContent}");
+					}
 
-					context.Notifications.Add(notification);
+					using (var context = new ShopContext())
+					{
+						var notifications = context.Notifications
+							.Where(n => n.NotificationReceiver == currentUser.UserName && !n.IsNotificationRead)
+							.ToList();
+
+						if (notifications.Any())
+						{
+							foreach (var item in notifications)
+							{
+								item.IsNotificationRead = true;
+							}
+
+							context.SaveChanges();
+						}
+					}
+
+					Console.WriteLine("Press key when you're ready!");
+					Console.ReadKey();
+					Console.WriteLine();
 				}
-
-				context.SaveChanges();
 			}
 		}
 	}
